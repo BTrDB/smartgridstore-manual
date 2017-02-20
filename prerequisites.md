@@ -1,10 +1,17 @@
 # Prerequisites
 
-This guide assumes that you have ceph and kubernetes set up. This chapter will walk you through a couple checks
-to ensure that this is the case. And it will walk you through some additional configuration, namely:
+This guide assumes that you have ceph and kubernetes set up. Although there are many guides for getting to that point, we have found the following useful:
+
+- [Ceph quick start](http://docs.ceph.com/docs/master/start/)
+- [K8S with kubeadm](https://kubernetes.io/docs/getting-started-guides/kubeadm/)
+
+This chapter will walk you through a couple checks to ensure that those guides
+were successful and that your cluster is ready to proceed. It will also walk you
+through some additional configuration, namely:
 
 - Creating and configuring the SGS k8s namespace
-- Connecting kubernetes and ceph
+- Configuring the kubernetes secrets for ceph
+- Configuring persistent volume provision on ceph
 
 ## NTP
 
