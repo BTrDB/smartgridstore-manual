@@ -11,3 +11,4 @@
   * [Site config](installation.md#site-config)
   * [Generate manifests](installation.md#generating-manifest-files)
   * [Startup](installation.md#startup)
+* [Admin console](adminconsole.md)
