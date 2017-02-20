@@ -6,7 +6,6 @@ The installation process has the following stages:
 - [Create siteconfig.yaml](#site-config)
 - [Generate your kubernetes config files](#generating-manifest-files)
 - [Starting everything up](#startup)
-- [Final configuration in the admin console](#final-config)
 
 ## Creating ceph pools
 
@@ -206,8 +205,6 @@ by executing
 ```
 kubectl delete pod -l app=ingester-upmu
 ```
-
-## Final config
 
 At this stage, your cluster is up and running, but you will likely want to drop into
 the admin console and change the default password and add PMU devices. Please consult the
