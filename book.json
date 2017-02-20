@@ -1,5 +1,9 @@
 {
-"plugins": [
-        "theme-comscore"
-    ]
+"pluginsConfig": {
+        "fontsettings": {
+            "theme": "night",
+            "family": "sans",
+            "size": 3
+        }
+    }
 }
