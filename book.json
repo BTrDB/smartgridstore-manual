@@ -1,5 +1,8 @@
 {
-"pluginsConfig": {
+  "plugins": [
+    "wide"
+  ],
+  "pluginsConfig": {
         "fontsettings": {
             "theme": "night",
             "family": "sans",
