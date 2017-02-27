@@ -1,6 +1,7 @@
 # Summary
 
 * [Introduction](README.md)
+* [Development environment](development-environment.md)
 * [Prerequisites](prerequisites.md)
   * [NTP](prerequisites.md#ntp)
   * [Ceph](prerequisites.md#ceph)
@@ -12,3 +13,4 @@
   * [Generate manifests](installation.md#generating-manifest-files)
   * [Startup](installation.md#startup)
 * [Admin console](adminconsole.md)
+
