@@ -1,7 +1,7 @@
 
 #Development environment
 
-If you are wanting a BTrDB setup on a workstation or laptop just to develop against it, this guide will show you how to set up an analogue of the production setup, including kubernetes, on a single machine.
+If you are wanting a BTrDB setup on a workstation or laptop just to develop against it, this section will show you how to set up an analogue of the production setup, including kubernetes, on a single machine. If you are setting up on a cluster, skip to [the next section](prerequisites.md).
 
 ## Prerequisites
 
