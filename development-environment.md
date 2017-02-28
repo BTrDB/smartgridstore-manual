@@ -19,11 +19,17 @@ docker network create --subnet 172.25.0.0/24 cephnet
 
 docker run -d --net cephnet --ip 172.25.0.5 \
  --pid=host \
+ --name ceph-mon \
  -v /srv/ceph/etc/ceph:/etc/ceph \
  -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
  -e MON_IP=172.25.0.5 \
  -e CEPH_PUBLIC_NETWORK=172.25.0.0/24 \
  ceph/daemon mon
+
+echo "osd max object name len = 256" >> /srv/ceph/etc/ceph/ceph.conf
+echo "osd max object namespace len = 64" >> /srv/ceph/etc/ceph/ceph.conf
+
+docker restart ceph-mon
 
 docker run -d --net cephnet --ip 172.25.0.6 \
  --pid=host \
