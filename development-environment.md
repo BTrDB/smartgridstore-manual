@@ -35,7 +35,7 @@ docker run -d --net cephnet --ip 172.25.0.6 \
  --pid=host \
  -v /srv/ceph/etc/ceph:/etc/ceph \
  -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd:/var/lib/ceph/osd \
+ -v /srv/ceph/osd0:/var/lib/ceph/osd \
  -e OSD_TYPE=directory \
  ceph/daemon osd
 
@@ -43,7 +43,7 @@ docker run -d --net cephnet --ip 172.25.0.7 \
  --pid=host \
  -v /srv/ceph/etc/ceph:/etc/ceph \
  -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd:/var/lib/ceph/osd \
+ -v /srv/ceph/osd1:/var/lib/ceph/osd \
  -e OSD_TYPE=directory \
  ceph/daemon osd
 
@@ -51,7 +51,7 @@ docker run -d --net cephnet --ip 172.25.0.8 \
  --pid=host \
  -v /srv/ceph/etc/ceph:/etc/ceph \
  -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd:/var/lib/ceph/osd \
+ -v /srv/ceph/osd2:/var/lib/ceph/osd \
  -e OSD_TYPE=directory \
  ceph/daemon osd
 
@@ -59,7 +59,7 @@ docker run -d --net cephnet --ip 172.25.0.9 \
  --pid=host \
  -v /srv/ceph/etc/ceph:/etc/ceph \
  -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd:/var/lib/ceph/osd \
+ -v /srv/ceph/osd3:/var/lib/ceph/osd \
  -e OSD_TYPE=directory \
  ceph/daemon osd
 ```
