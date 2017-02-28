@@ -69,7 +69,9 @@ docker run -d --net cephnet --ip 172.25.0.9 \
 Download minikube
 
 ```
-curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+curl -Lo minikube \
+ https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 && \
+ chmod +x minikube && sudo mv minikube /usr/local/bin/
 ```
 
 Then start it up
