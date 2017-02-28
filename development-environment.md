@@ -64,3 +64,5 @@ docker run -d --net cephnet --ip 172.25.0.9 \
  ceph/daemon osd
 ```
 
+
+
