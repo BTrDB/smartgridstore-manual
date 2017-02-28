@@ -86,4 +86,10 @@ NAME       STATUS    AGE
 minikube   Ready     7s
 ```
 
+The "external IP" of your node can be found with:
+
+```
+minikube ip
+```
+
 You should be able to proceed with the rest of the installation guide. 
