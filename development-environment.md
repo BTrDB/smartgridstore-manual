@@ -64,5 +64,26 @@ docker run -d --net cephnet --ip 172.25.0.9 \
  ceph/daemon osd
 ```
 
+## Setting up minikube
 
+Download minikube
 
+```
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+```
+
+Then start it up
+
+```
+minikube start
+```
+
+It will download and start a kubernetes cluster for you, using virtualbox+docker. The result is a kubernetes cluster with a single node:
+
+```
+$ kubectl get nodes
+NAME       STATUS    AGE
+minikube   Ready     7s
+```
+
+You should be able to proceed with the rest of the installation guide. 
