@@ -13,4 +13,5 @@
   * [Generate manifests](installation.md#generating-manifest-files)
   * [Startup](installation.md#startup)
 * [Admin console](adminconsole.md)
+* [Troubleshooting](troubleshooting.md)
 
