@@ -2,10 +2,12 @@
 
 This contains a bit of troubleshooting info, as well as some tips and tricks. We will update this as we hear back from users about things they have run in to.
 
-## ETCD
+## I lost an etcd pod and now it won't start up
+
+You may see a message like
 
 ```
-I lost an etcd pod and now it won't start up. The logs say "Was the raft log corrupted, truncated, or lost?".
+raft: tocommit(234) is out of range [lastIndex(0)]. Was the raft log corrupted, truncated, or lost?
 ```
 
 First off, fear not, there are multiple ways to recover from this. If it is only a minority of etcd pods that were lost (1/3 or 2/5) then the fix is very simple. You need to remove and re-add the member to let etcd know that it is ok to recover that member. As an example:
@@ -38,4 +40,4 @@ $ kubectl cp etcd-backup-3266148700-fg6c4:/srv/persist etcd_backups
 
 Then contact btrdb@googlegroups.com for help, or adapt the instructions for [etcd disaster recovery](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/recovery.md).
 
-The reason this happens is that in the current versions of smartgridstore we do not attach real persistent storage to the pods. This is probably temporary and we may change this, but it is because our initial testing showed that RBDs did not perform well enough under the synchronous load of etcd.
+The reason this happens is that in the current versions of smartgridstore we use `emptyDir` storage volumes for etcd pods. This is probably temporary and we may change this, but it is because our initial testing showed that RBDs did not perform well enough under the synchronous load of etcd. For machine reboots, this is not a problem, but for machine failures or pod deletions, this manual intervention is required. We are working on a way to safely automate this.
