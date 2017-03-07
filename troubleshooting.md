@@ -35,6 +35,7 @@ etcd-backup-3266148700-fg6c4   1/1       Running   0          14h
 $ kubectl cp etcd-backup-3266148700-fg6c4:/srv/persist etcd_backups
 #your backups are now in the etcd_backups directory
 ```
+
 Then contact btrdb@googlegroups.com for help, or adapt the instructions for [etcd disaster recovery](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/recovery.md).
 
 The reason this happens is that in the current versions of smartgridstore we do not attach real persistent storage to the pods. This is probably temporary and we may change this, but it is because our initial testing showed that RBDs did not perform well enough under the synchronous load of etcd.
