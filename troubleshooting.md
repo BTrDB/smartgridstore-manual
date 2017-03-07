@@ -41,3 +41,15 @@ $ kubectl cp etcd-backup-3266148700-fg6c4:/srv/persist etcd_backups
 Then contact btrdb@googlegroups.com for help, or adapt the instructions for [etcd disaster recovery](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/recovery.md).
 
 The reason this happens is that in the current versions of smartgridstore we use `emptyDir` storage volumes for etcd pods. This is probably temporary and we may change this, but it is because our initial testing showed that RBDs did not perform well enough under the synchronous load of etcd. For machine reboots, this is not a problem, but for machine failures or pod deletions, this manual intervention is required. We are working on a way to safely automate this.
+
+## I cannot access BTrDB from outside kubernetes pods
+
+If you are trying to access BTrDB from a machine that is part of the kubernetes cluster, the best way is to configure your host DNS to check kubernetes' DNS first. We have done this by adding a line with the cluster DNS IP to `/etc/resolvconf/resolv.conf.d/head` like:
+
+```
+nameserver 10.96.0.10
+```
+
+But the details of this will depend on your kubernetes network addon (that determines the DNS IP) and your Linux distribution.
+
+If you are trying to access BTrDB from outside the cluster entirely, unfortunately this is not a supported configuration in this version (although we are actively working on it). As a temporary stopgap, you can scale BTrDB down to a single node, add an externalIPs field to the btrdb-bootstrap service and configure the `BTRDB_APPEND_ADVERTISE_GRPC` environment variable in the BTrDB statefulset to `<externalip>:4410`.
