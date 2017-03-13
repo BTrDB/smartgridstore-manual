@@ -104,6 +104,8 @@ CURRENT   NAME                 CLUSTER      AUTHINFO   NAMESPACE
           kubelet@kubernetes   kubernetes   kubelet    
 ```          
 
+If you don't, you may not have a config for kubernetes yet, you can copy `/etc/kubernetes/admin.conf` to `~/.kube/config` and then you should get the above lines.
+
 The important field is that the line with a `*` on it should have the namespace `sgs`. If this is not the case, execute:
 
 ```
@@ -255,7 +257,7 @@ $ kubectl create secret generic ceph-rbd-secret -n sgs --type="kubernetes.io/rbd
 
 Next you need to replace the kubernetes controller manager container. This is a workaround for the fact that
 kubeadm does not put the rbd tools inside the kcm container. On your masters, edit the file `/etc/kubernetes/manifests/kube-controller-manager.json`. In that file, change the specified image
-to `btrdb/kubernetes-controller-manager-rbd:1.5.2`. As the name implies we built this image for kubernetes 1.5.2. If this
+to `btrdb/kubernetes-controller-manager-rbd:1.5.4`. As the name implies we built this image for kubernetes 1.5.4. If this
 guide has gone out of date, you can see how we built that container in [the github repo](https://github.com/immesys/smartgridstore/tree/master/k8s_tools/kcm-ceph).
 
 Not being a kubernetes expert, I got the new image to take effect by restarting the entire master machine.
@@ -294,7 +296,7 @@ parameters:
   userSecretName: ceph-rbd-secret
 ```
 
-Please make sure that you adjust the `monitors` line to contain your actual ceph monitors.
+Please make sure that you adjust the `monitors` line to contain your actual ceph monitors, and that you adjust the secretNamespace if your namespace is not called sgs.
 
 Then create the storage class with
 
