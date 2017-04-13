@@ -38,3 +38,5 @@ acl/users> cd admin
 acl/users/admin> passwd newpassword
 password changed
 ```
+
+The documentation for the rest of the admin console commands is missing due to time constraints. Commands have help text, however, that can be accessed with `help <cmd>`.

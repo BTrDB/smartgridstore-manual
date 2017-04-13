@@ -45,7 +45,7 @@ To generate an example siteconfig, run
 ```
 
 You should get a file similar to this. The file that mfgen creates is correct for the version of smartgridstore. If
-the file differs from what you see on this guide, it is likely that the guide is out of date, do not change the generated
+the file differs from what you see on this guide, it is likely that this guide is out of date, do not change the generated
 file.
 
 ```yaml
@@ -60,7 +60,9 @@ siteInfo:
     btrdbPool: btrdb
     rbdPool: rbd
   externalIPs:
-  - 128.32.37.141
+  - 123.123.123.1
+misc:
+  avoidStorageClass: false
 ```
 
 You can change channel to be "dev" if you want to use the development images in the cluster. `release` images never change, and contain software that we believe is stable. `dev` images contain our work-in-progress for the next release version so may not work or may change frequently on the same version tag. To allow this to work, your imagePullPolicy must be "Always" for dev images, but it can be "IfNotPresent" on `release` images if desired.

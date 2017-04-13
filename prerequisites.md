@@ -257,8 +257,8 @@ $ kubectl create secret generic ceph-rbd-secret -n sgs --type="kubernetes.io/rbd
 
 Next you need to replace the kubernetes controller manager container. This is a workaround for the fact that
 kubeadm does not put the rbd tools inside the kcm container. On your masters, edit the file `/etc/kubernetes/manifests/kube-controller-manager.json`. In that file, change the specified image
-to `btrdb/kubernetes-controller-manager-rbd:1.5.4`. As the name implies we built this image for kubernetes 1.5.4. If this
-guide has gone out of date, you can see how we built that container in [the github repo](https://github.com/immesys/smartgridstore/tree/master/k8s_tools/kcm-ceph).
+to `btrdb/kubernetes-controller-manager-rbd:1.6.1`. As the name implies we built this image for kubernetes 1.6.1. If this
+guide has gone out of date, you can see how we built that container in [the github repo](https://github.com/immesys/smartgridstore/tree/master/k8s_tools/kcm-ceph). It generally does not work well to use the wrong version of kubernetes controller manager, so please ensure the version matches your kubernetes version. Alternatively AT&T maintain [a KCM image with almost identical changes](https://github.com/att-comdev/dockerfiles/tree/master/kube-controller-manager), so you can consider using theirs.
 
 Not being a kubernetes expert, I got the new image to take effect by restarting the entire master machine.
 After it comes back up, ensure that all your daemons are functioning properly, I found that some
@@ -341,7 +341,7 @@ NAME                               STATUS    VOLUME                             
 testclaim                          Bound     pvc-969c006c-f7aa-11e6-9a3c-0cc47aaadc3c   8Gi        RWO           2s
 ```
 
-If the status is `bound` then you have done everything correctly.
+If the status is `bound` then you have done everything correctly. Note that if you are using a separate ceph cluster (i.e. your k8s nodes are not a part of your ceph cluster), you must still install the correct version of ceph-common on all the nodes in order for the RBD volumes to mount correctly. As before, do not use the default apt repository, get the latest ceph repository.
 
 To clean up, run
 

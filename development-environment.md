@@ -94,4 +94,4 @@ The "external IP" of your node can be found with:
 minikube ip
 ```
 
-You should be able to proceed with the rest of the installation guide. 
+You should be able to proceed with the rest of the installation guide. Note that there are still some difficulties with using ceph as a storage class inside minikube. You may need to use the "avoid storage class" option in the site config.
