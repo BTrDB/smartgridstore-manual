@@ -257,7 +257,7 @@ $ kubectl create secret generic ceph-rbd-secret -n sgs --type="kubernetes.io/rbd
 
 Next you need to replace the kubernetes controller manager container. This is a workaround for the fact that
 kubeadm does not put the rbd tools inside the kcm container. On your masters, edit the file `/etc/kubernetes/manifests/kube-controller-manager.json`. In that file, change the specified image
-to `btrdb/kubernetes-controller-manager-rbd:1.6.1`. As the name implies we built this image for kubernetes 1.6.1. If this
+to `btrdb/kubernetes-controller-manager-rbd:1.6.2`. As the name implies we built this image for kubernetes 1.6.2. If this
 guide has gone out of date, you can see how we built that container in [the github repo](https://github.com/immesys/smartgridstore/tree/master/k8s_tools/kcm-ceph). It generally does not work well to use the wrong version of kubernetes controller manager, so please ensure the version matches your kubernetes version. Alternatively AT&T maintain [a KCM image with almost identical changes](https://github.com/att-comdev/dockerfiles/tree/master/kube-controller-manager), so you can consider using theirs.
 
 Not being a kubernetes expert, I got the new image to take effect by restarting the entire master machine.
