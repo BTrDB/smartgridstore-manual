@@ -21,7 +21,7 @@ $ etcdctl member list
 69691ed70da97612, started, etcd-0, http://etcd-0.etcd:2380, http://etcd-0.etcd:2379
 7e44220b60d58d6a, started, etcd-1, http://etcd-1.etcd:2380, http://etcd-1.etcd:2379
 # we want to remove the last one
-$ etcdctl member remove 7e44220b60d58d6a 
+$ etcdctl member remove 7e44220b60d58d6a
 Member 7e44220b60d58d6a removed from cluster 9c3a8eb86bab5e36
 # now re-add it
 $ etcdctl member add etcd-1 --peer-urls http://etcd-1.etcd:2380
@@ -56,3 +56,10 @@ But the details of this will depend on your kubernetes network addon (that deter
 
 If you are trying to access BTrDB from outside the cluster entirely, unfortunately this is not a supported configuration in this version (although we are actively working on it). As a temporary stopgap, you can scale BTrDB down to a single node, add an externalIPs field to the btrdb-bootstrap service and configure the `BTRDB_APPEND_ADVERTISE_GRPC` environment variable in the BTrDB statefulset to `<externalip>:4410`.
 
+## Logs are your friend
+
+Throughout the deployment process you will likely need to access the logs from the different components that comprise a BTrDB installation.  In Kubernetes, logs can be accessed from the pods using kubectl.  An example of checking the logs for the BTrDB ingester would be accessed by issuing the command,
+```
+kubectl logs -f ingester-xxxx-xxxx
+```
+The -f parameter will will continue to stream updates to your terminal session from the pod until you cancel the request.   The ingester log is valuable when you're trying to establish a connection from a microPMU to the ingester.  Common errors that can be caught are naming conventions used for a particular device or if the ingester is receiving unexpected inputs from the microPMU.  
