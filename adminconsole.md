@@ -110,15 +110,15 @@ delmeta   - deletes metadata key-value pairs
 lsdevs    - lists metadata for all devices with a given prefix
 ```
 
-We will step through and example of setting up a stream for display in Mr. Plotter.  For the purposes of this example we're going to assume we have a microPMU identified as device p300001.  We need to add this device to our list of devices that we will ingest into BTrDB.  The add command takes the following parameters.
+We will step through and example of setting up a stream for display in Mr. Plotter.  For the purposes of this example we're going to assume we have a microPMU identified as device p300001.  We need to add this device to our list of devices that we will ingest into BTrDB.  This entry assumes that you are using the binary transfer method from the microPMU to BTrDB ingester and not the C37.118 stream being sent from the microPMU. C37.118 is still in development and will be covered in a future update. The add command takes the following parameters.
 
 ```
 add descriptor [key1=value1] [key2=value2] ...```
 
-In our example we are going to identify the device as `descriptor` followed by the path that we want to assign as represented in the tree of Mr. Plotter.
+In our example we are going to identify the device as `descriptor` followed by the path that we want to assign as represented in the tree of Mr. Plotter.  All the descriptors should use the psl.pqube. prefix to the microPMU ID.
 
 ```
-add p300001 path=myPMU
+add psl.pqube.p300001 path=myPMU
 ```
 
 As represented in Mr. Plotter the tree would show:
