@@ -115,10 +115,10 @@ We will step through and example of setting up a stream for display in Mr. Plott
 ```
 add descriptor [key1=value1] [key2=value2] ...```
 
-In our example we are going to identify the device as `descriptor` followed by the path that we want to assign as represented in the tree of Mr. Plotter.  All the descriptors should use the psl.pqube. prefix to the microPMU ID.
+In our example we are going to identify the device as `descriptor` followed by the path that we want to assign as represented in the tree of Mr. Plotter.  All the descriptors should use the psl.pqube3. prefix to the microPMU ID.
 
 ```
-add psl.pqube.p300001 path=myPMU
+add psl.pqube3.p300001 path=myPMU
 ```
 
 As represented in Mr. Plotter the tree would show:
@@ -128,10 +128,10 @@ As represented in Mr. Plotter the tree would show:
         - C1ANG
         - C1MAG
 ```
-To group your devices you would add an additonal element to the path parameter.
+To group your devices you would add an additional element to the path parameter.
 
 ```
-add p300001 path=myPMU/device1
+add psl.pqube3.p300001 path=myPMU/device1
 ```
 *
 It is IMPORTANT that you don't trail the command with a closing /
@@ -145,6 +145,6 @@ It is IMPORTANT that you don't trail the command with a closing /
            - C1ANG
            - C1MAG
 ```
-Keep an eye on the ingester logs in Kubernetes for any problems if the tree fails to load your entries via manifest. 
+Keep an eye on the ingester logs in Kubernetes for any problems if the tree fails to load your entries via manifest.
 
 The documentation for the rest of the admin console commands is missing due to time constraints. Commands have help text, however, that can be accessed with `help <cmd>`.
