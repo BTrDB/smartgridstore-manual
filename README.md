@@ -2,7 +2,7 @@
 
 Smart Grid Store is a distribution of the Berkeley Tree Database \(BTrDB\) that packages  
 BTrDB along with tools for working with smart grid data in containers for easy deployment  
-on a Kubernetes cluster. This guide is for version 4.4.3.
+on a Kubernetes cluster. This guide is for version 4.4.13.
 
 Smart Grid Store, or SGS, consists of the following components:
 

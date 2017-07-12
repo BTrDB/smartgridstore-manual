@@ -248,6 +248,8 @@ Before you begin, if you are running Ceph Jewel, Kraken or Luminous, it will by 
 rbd default features = 1
 ```
 
+Also, I believe it is necessary to have Linux Kernel 4.10 or greater.
+
 Next, the RBD provider also needs a ceph secret, but in a slighly different format. Get the literal key
 from your admin keyring with:
 
