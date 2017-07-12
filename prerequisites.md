@@ -237,11 +237,18 @@ kubectl create secret -n sgs generic ceph-keyring --from-file=ceph.client.admin.
 
 ### Ceph PV provider
 
+
 If you are running on bare metal and you do not have a default persistent volume provider, you can use ceph
 as a provider. Ensure that you have a ceph pool you would like to use for RBDs. SGS does not require much
 space in its persistent volumes, so if you have SSDs it would be best to allocate your RBD pool exclusively on those.
 
-First off, the RBD provider also needs a ceph secret, but in a slighly different format. Get the literal key
+Before you begin, if you are running Ceph Jewel, Kraken or Luminous, it will by default create RBD's with features unsupported by krbd. Please ensure your ceph config file has this line to prevent this:
+
+```
+rbd default features = 1
+```
+
+Next, the RBD provider also needs a ceph secret, but in a slighly different format. Get the literal key
 from your admin keyring with:
 
 ```bash
