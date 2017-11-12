@@ -23,4 +23,4 @@ SmartGridStore relies upon third party software:
 
 Both of these dependencies are rock solid, and have available enterprise support contracts. Note that at present we do not support [OpenSHIFT](https://www.openshift.com/), the commercial Kubernetes distribution by Red Hat, as we use features in Kubernetes upstream that have not made it to openshift yet, but if there is enough interest we may reconsider this choice.
 
-An enterprise support contract for Smart Grid Store is available upon request, and is provided by [PingThings Inc.](http://www.pingthings.io/).
+An enterprise support contract for Smart Grid Store is available upon request, and is provided by [PingThings Inc.](http://www.pingthings.io/).  You can access our online support via our Slack presence.  To access Slack please join via our automated membership request at (http://btrdb-slack-invite.herokuapp.com).  
