@@ -124,6 +124,46 @@ total_space      873G
 
 ```
 
+## Tearing down the cluster
+
+When you are done, you can tear down the development machine with
+
+``
+source ./environment.sh 
+sudo -E ./teardown_devmachine.sh 
+```
+
+Your output should look like
+
+```
+[INFO] removing container devmachine-ceph-osd-0 if exists
+ DELETED
+[INFO] removing container devmachine-ceph-osd-1 if exists
+ DELETED
+[INFO] removing container devmachine-ceph-osd-2 if exists
+ DELETED
+[INFO] removing container devmachine-ceph-osd-3 if exists
+ DELETED
+[INFO] removing container devmachine-ceph-mon if exists
+ DELETED
+[INFO] removing container devmachine-ceph-mgr if exists
+ DELETED
+[INFO] removing container devmachine-etcd if exists
+ DELETED
+[INFO] removing container devmachine-btrdbd if exists
+ DELETED
+[INFO] removing container devmachine-console if exists
+ DELETED
+[INFO] removing container devmachine-apifrontend if exists
+ DELETED
+[INFO] removing container devmachine-mrplotter if exists
+ DELETED
+[INFO] removing network cephnet if exists
+ DELETED
+[INFO] removing all state
+[OKAY] all done here, have a great day!
+```
+
 ## Limitations
 
 The development environment is not particularly durable, so should not be used to store real data. 
