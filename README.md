@@ -1,8 +1,8 @@
-# Smart Grid Store - 4.4.3
+# Smart Grid Store - 4.7
 
 Smart Grid Store is a distribution of the Berkeley Tree Database (BTrDB) that packages
 BTrDB along with tools for working with smart grid data in containers for easy deployment
-on a Kubernetes cluster. This guide is for version 4.4.3.
+on a Kubernetes cluster. This guide is for version 4.7.x
 
 Smart Grid Store, or SGS, consists of the following components:
 * BTrDB: the timeseries database that stores all the data
@@ -10,12 +10,11 @@ Smart Grid Store, or SGS, consists of the following components:
 * AdminCLI: A supervisory admin text-based console that allows monitoring and configuring the cluster
 * pmu2btrdb: A high performance direct-path ingress daemon for Power Standards Lab microsynchrophasors
 * receiver/sync2q: A buffered-path ingress daemon pair for uPMUs that preserves the raw files produced by the devices for debugging or recovery at the expense of performance
+* c37ingress: An ingress daemon for IEEE C37.118 synchrophasor data
 
 We are working on developing the following components for the latest version of SGS:
 
-* DISTIL: continuous analysis and transformation of BTrDB streams
 * Jupyter notebooks: a preconfigured python notebook setup for quick custom analysis
-* IEEE C37 ingress daemon: for connecting to third party synchrophasor systems
 
 SmartGridStore relies upon third party software:
 * [Kubernetes](https://kubernetes.io/): a container orchestration framework
