@@ -75,7 +75,7 @@ The program 'ceph' is currently not installed. You can install it by typing:
 sudo apt install ceph-common
 ```
 
-Do *NOT* install ceph via apt. Go back to the ceph tutorial and make sure that you have followed all the steps correctly.
+Do *NOT* install ceph via apt as it could be an old version. Go back to the ceph tutorial and make sure that you have followed all the steps correctly.
 
 If you get an output like
 
@@ -265,9 +265,8 @@ $ kubectl create secret generic ceph-rbd-secret -n sgs --type="kubernetes.io/rbd
 ```
 
 Next you need to replace the kubernetes controller manager container. This is a workaround for the fact that
-kubeadm does not put the rbd tools inside the kcm container. On your masters, edit the file `/etc/kubernetes/manifests/kube-controller-manager.json`. In that file, change the specified image
-to `btrdb/kubernetes-controller-manager-rbd:1.6.2`. As the name implies we built this image for kubernetes 1.6.2. If this
-guide has gone out of date, you can see how we built that container in [the github repo](https://github.com/immesys/smartgridstore/tree/master/k8s_tools/kcm-ceph). It generally does not work well to use the wrong version of kubernetes controller manager, so please ensure the version matches your kubernetes version. Alternatively AT&T maintain [a KCM image with almost identical changes](https://github.com/att-comdev/dockerfiles/tree/master/kube-controller-manager), so you can consider using theirs.
+kubeadm does not put the rbd tools inside the kcm container. On your masters, edit the file `/etc/kubernetes/manifests/kube-controller-manager.yaml`. In that file, change the specified image
+to `btrdb/kubernetes-controller-manager-rbd:1.7.0`. As the name implies we built this image for kubernetes 1.7.0. If your kubernetes is a different version you can see how we built that container in [the github repo](https://github.com/BTrDB/smartgridstore/tree/master/containers/kcm-ceph). It generally does not work well to use the wrong version of kubernetes controller manager, so please ensure the version matches your kubernetes version. Alternatively AT&T maintain [a KCM image with almost identical changes](https://github.com/att-comdev/dockerfiles/tree/master/kube-controller-manager), so you can consider using theirs.
 
 Not being a kubernetes expert, I got the new image to take effect by restarting the entire master machine.
 After it comes back up, ensure that all your daemons are functioning properly, I found that some
@@ -356,6 +355,27 @@ To clean up, run
 
 ```
 kubectl delete -f testclaim.yaml
+```
+
+## Creating storage class for etcd
+
+The etcd operator version we use requires a specifically named storage class. To create it, copy your `fastrbd.yaml` file to `etcd-backup-gce-pd.yaml`. Then edit the file to change the name and remove the default attribute.
+
+```
+apiVersion: storage.k8s.io/v1beta1
+kind: StorageClass
+metadata:
+  name: etcd-backup-gce-pd
+provisioner: kubernetes.io/rbd
+parameters:
+  monitors: <your monitors>
+  adminId: admin
+  adminSecretName: ceph-rbd-secret
+  adminSecretNamespace: sgs
+  # this is correct, use the same ceph pool
+  pool: fastrbd
+  userId: admin
+  userSecretName: ceph-rbd-secret
 ```
 
 ## Finishing up
