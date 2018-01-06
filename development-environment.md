@@ -1,97 +1,129 @@
 
 #Development environment
 
-If you are wanting a BTrDB setup on a workstation or laptop just to develop against it, this section will show you how to set up an analogue of the production setup, including kubernetes, on a single machine. If you are setting up on a cluster, skip to [the next section](prerequisites.md).
+If you are wanting a BTrDB setup on a workstation or laptop just to develop against it, this section will show you how to set up an analogue of the production setup, minus the ingress daemons.
 
 ## Prerequisites
 
-This assumes you have docker and virtualbox installed on your target machine.
+This assumes you have docker installed and that your shell is `bash`.
 
-## Setting up Ceph
+## Configuring devmachine
 
-Lets create a MON and four OSDs using docker. We will place them on a new docker network so that we can hard code their IPs and know they won't collide. The data will be stored in directories in /srv/ceph
-
-
-```
-mkdir -p /srv/ceph
-
-docker network create --subnet 172.25.0.0/24 cephnet
-
-docker run -d --net cephnet --ip 172.25.0.5 \
- --pid=host \
- --name ceph-mon \
- -v /srv/ceph/etc/ceph:/etc/ceph \
- -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -e MON_IP=172.25.0.5 \
- -e CEPH_PUBLIC_NETWORK=172.25.0.0/24 \
- ceph/daemon mon
-
-echo "osd max object name len = 256" >> /srv/ceph/etc/ceph/ceph.conf
-echo "osd max object namespace len = 64" >> /srv/ceph/etc/ceph/ceph.conf
-
-docker restart ceph-mon
-
-docker run -d --net cephnet --ip 172.25.0.6 \
- --pid=host \
- -v /srv/ceph/etc/ceph:/etc/ceph \
- -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd0:/var/lib/ceph/osd \
- -e OSD_TYPE=directory \
- ceph/daemon osd
-
-docker run -d --net cephnet --ip 172.25.0.7 \
- --pid=host \
- -v /srv/ceph/etc/ceph:/etc/ceph \
- -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd1:/var/lib/ceph/osd \
- -e OSD_TYPE=directory \
- ceph/daemon osd
-
-docker run -d --net cephnet --ip 172.25.0.8 \
- --pid=host \
- -v /srv/ceph/etc/ceph:/etc/ceph \
- -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd2:/var/lib/ceph/osd \
- -e OSD_TYPE=directory \
- ceph/daemon osd
-
-docker run -d --net cephnet --ip 172.25.0.9 \
- --pid=host \
- -v /srv/ceph/etc/ceph:/etc/ceph \
- -v /srv/ceph/var/lib/ceph/:/var/lib/ceph/ \
- -v /srv/ceph/osd3:/var/lib/ceph/osd \
- -e OSD_TYPE=directory \
- ceph/daemon osd
-```
-
-## Setting up minikube
-
-Download minikube
+Clone the smartgridstore repository and change into the devmachine directory
 
 ```
-curl -Lo minikube \
- https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 && \
- chmod +x minikube && sudo mv minikube /usr/local/bin/
+git clone https://github.com/BTrDB/smartgridstore
+cd smartgridstore/devmachine
 ```
 
-Then start it up
+If necessary, edit the `environment.sh` file to parameterize the development environment. The defaults should work okay on Ubuntu and OS X. 
+
+## Setting up the cluster
+
+Source the environment file from the devmachine directory and run `start_devmachine.sh`
 
 ```
-minikube start
+source ./environment.sh
+sudo -E ./start_devmachine.sh
 ```
 
-It will download and start a kubernetes cluster for you, using virtualbox+docker. The result is a kubernetes cluster with a single node:
+Your output should look like this:
 
 ```
-$ kubectl get nodes
-NAME       STATUS    AGE
-minikube   Ready     7s
+[INFO] docker network created
+[INFO] pulling containers
+[INFO][PULL] Using default tag: latest
+[INFO][PULL] latest: Pulling from btrdb/cephdaemon
+[INFO][PULL] Digest: sha256:bc03572d198e784e2aebc78473920f777d56faeba909372c466530e6dc13ce4a
+[INFO][PULL] Status: Image is up to date for btrdb/cephdaemon:latest
+[INFO][PULL] latest: Pulling from btrdb/stubetcd
+[INFO][PULL] Digest: sha256:6e871f7da2bbc5e717f82c2ac8529a9d58995fc3f937a0d1e49fb191f5232d39
+[INFO][PULL] Status: Image is up to date for btrdb/stubetcd:latest
+[INFO][PULL] 4.7.0: Pulling from btrdb/db
+[INFO][PULL] Digest: sha256:91ca6adcc32795c810cc2bcfd3f6961c5d672e05d738127932e7f208189dffbf
+[INFO][PULL] Status: Image is up to date for btrdb/db:4.7.0
+[INFO][PULL] 4.7.0: Pulling from btrdb/apifrontend
+[INFO][PULL] Digest: sha256:fb51a22aab7335753be78799dae69954f49c1287faa93fdb51bb570b9618c4ed
+[INFO][PULL] Status: Image is up to date for btrdb/apifrontend:4.7.0
+[INFO] waiting for monitor container to start
+[OKAY] ceph config found
+[WARN] custom monitor configs and restarting mon
+[INFO] ceph MGR started
+[INFO] ceph OSD 0 started
+[INFO] ceph OSD 1 started
+[INFO] ceph OSD 2 started
+[INFO] ceph OSD 3 started
+[INFO] etcd started
+[INFO] checking pools
+[INFO][POOL CREATE] pool 'btrdbhot' created
+[INFO][POOL CREATE] pool 'btrdbcold' created
+[INFO] checking database is initialized
+[INFO][DB INIT] + ls /etc/ceph
+[INFO][DB INIT] ceph.client.admin.keyring  ceph.conf  ceph.mon.keyring
+[INFO][DB INIT] + set +x
+[INFO][DB INIT] nameserver 127.0.0.11
+[INFO][DB INIT] options ndots:0
+[INFO][DB INIT] ensuring database
+[INFO][DB INIT] [INFO]main.go:41 > Starting BTrDB version 4.7.0 
+
+DB INIT output trimmed a bit
+
+[INFO][DB INIT] Creating blank cold allocator
+[INFO][DB INIT] Initializing cold pool
+[INFO][DB INIT] Initializing hot pool
+[INFO][DB INIT] Done
+[INFO] waiting for DB server to start (20s)
+[INFO] database server started
+[INFO] admin console started
+[INFO] plotter server started
+[COMPLETE] =========================
+Plotter is on https://127.0.0.1:8888
+Console is on ssh://127.0.0.1:2222
+BTrDB GRPC api is on 127.0.0.1:4410
+BTrDB HTTP api is on http://127.0.0.1:9000
+BTrDB HTTP swagger UI is on http://127.0.0.1:9000/swag
 ```
 
-The "external IP" of your node can be found with:
+You can now access BTrDB and Mr. Plotter as if it were running on localhost.
+
+## Interacting with Ceph
+
+When you source the `environment.sh` file, it also adds `dvceph` and `dvrados` commands to your path. These commands act like the `ceph` and `rados` commands but appropriately execute inside the docker containers so that they connect to the devmachine ceph cluster. For example
 
 ```
-minikube ip
+$ dvceph -s  
+cluster:
+    id:     cf4e08c9-f0b2-4957-a2b5-daf5ae12609e
+    health: HEALTH_WARN
+            4 nearfull osd(s)
+            application not enabled on 2 pool(s)
+            too few PGs per OSD (24 < min 30)
+            mon bb1943fcac64 is low on available space
+ 
+  services:
+    mon: 1 daemons, quorum bb1943fcac64
+    mgr: 1849d337a4ea(active)
+    osd: 4 osds: 4 up, 4 in
+         flags nearfull
+ 
+  data:
+    pools:   2 pools, 32 pgs
+    objects: 2 objects, 16 bytes
+    usage:   756 GB used, 117 GB / 873 GB avail
+    pgs:     32 active+clean
+
+$ dvrados df
+POOL_NAME USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS RD   WR_OPS WR   
+btrdbcold    8       1      0      3                  0       0        0      3 2048      4 2048 
+btrdbhot     8       1      0      3                  0       0        0      3 2048      4 2048 
+
+total_objects    2
+total_used       756G
+total_avail      117G
+total_space      873G
+
 ```
 
-You should be able to proceed with the rest of the installation guide. Note that there are still some difficulties with using ceph as a storage class inside minikube. You may need to use the "avoid storage class" option in the site config.
+## Limitations
+
+The development environment is not particularly durable, so should not be used to store real data. 
