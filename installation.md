@@ -9,25 +9,24 @@ The installation process has the following stages:
 
 ## Creating ceph pools
 
-SGS requires two ceph pools. Although these can be the same
+SGS requires three ceph pools. Although these can be the same
 pool with no problems, having them as different pools will allow you
 to migrate onto different storage later without any difficulty.
 
-The first pool is the one that BTrDB uses to store data. For this release
-both the hot and cold data is stored in the same pool. The pool can have any
-name, you will specify the pool name in the site config in the next step.
-The second pool is used by the `receiver/ingester` daemon pair for storing incoming PMU data in its raw form before
-it is processed by BTrDB. This stage is skipped if you use the `pmu2btrdb` ingress daemon. More details
-can be found in the [ingress daemons section](ingressdaemons.md).
+The first two pools are the ones that BTrDB uses to store data. The pools can have any
+namse, you will specify the pool names in the site config in the next step.
+The third pool is used by the `receiver/ingester` daemon pair for storing incoming PMU data in its raw form before
+it is processed by BTrDB. This stage is skipped if you use the `pmu2btrdb` ingress daemon.
 
 ```bash
-ceph osd pool create btrdb 256
+ceph osd pool create btrdb_hot 256
+ceph osd pool create btrdb_data 256
 ceph osd pool create staging 256
 ```
 
-For details on this command, consult the [ceph documentation](http://docs.ceph.com/docs/jewel/rados/operations/pools/).
-In particular, a placement group count of 256 is appropriate for between 5 and 10 OSDs assuming you are creating three
-pools (one for the RBD pv's created in the prequisites section and two in this section).
+For details on this command, consult the [ceph documentation](http://docs.ceph.com/docs/luminous/rados/operations/pools/).
+In particular, a placement group count of 256 is appropriate for between 5 and 10 OSDs assuming you are creating four
+pools (one for the RBD pv's created in the prerequisites section and three in this section).
 
 ## Site config
 
@@ -36,7 +35,7 @@ to copy and paste common information between multiple files. To make this a litt
 `mfgen`, that will take a site configuration file and generate all the manifest files for you.
 
 To begin, download the `mfgen` for the version of smartgridstore that you are installing. You can get this
-from the [releases page on github](https://github.com/immesys/smartgridstore/releases).
+from the [releases page on github](https://github.com/BTrDB/smartgridstore/releases).
 
 To generate an example siteconfig, run
 
@@ -51,21 +50,35 @@ file.
 ```yaml
 apiVersion: smartgrid.store/v1
 kind: SiteConfig
+# this is the kubernetes namespace that you are deploying into
+targetNamespace: sgs
 containers:
+  #this can be 'development'
   channel: release
   imagePullPolicy: Always
 siteInfo:
   ceph:
+    # the staging pool is where ingress daemons stage data. It can be
+    # ignored if you are not using ingress daemons
     stagingPool: staging
-    btrdbPool: btrdb
-    rbdPool: rbd
+
+    # the btrdb data pool (or cold pool) is where most of the data
+    # is stored. It is typically large and backed by spinning metal drives
+    btrdbDataPool: btrdb_data
+    # the btrdb hot pool is used for more performance-sensitive
+    # data. It can be smaller and is usually backed by SSDs
+    btrdbHotPool: btrdb_hot
+    # the RBD pool is used to provision persistent storage for
+    # kubernetes pods. It can use spinning metal.
+    rbdPool: fastrbd
+
+  # the external IPs listed here are where the services can be contacted
+  # e.g for the plotter or the BTrDB API
   externalIPs:
   - 123.123.123.1
-misc:
-  avoidStorageClass: false
 ```
 
-You can change channel to be "dev" if you want to use the development images in the cluster. `release` images never change, and contain software that we believe is stable. `dev` images contain our work-in-progress for the next release version so may not work or may change frequently on the same version tag. To allow this to work, your imagePullPolicy must be "Always" for dev images, but it can be "IfNotPresent" on `release` images if desired.
+You can change channel to be "development" if you want to use the development images in the cluster. `release` images never change, and contain software that we believe is stable. `dev` images contain our work-in-progress for the next release version so may not work or may change frequently on the same version tag. To allow this to work, your imagePullPolicy must be "Always" for dev images, but it can be "IfNotPresent" on `release` images if desired.
 
 Under siteInfo, fill in the names of the ceph pools that you created so far. In addition, fill in the external IP addresses of all the servers in the cluster. These will be put into the externalIPs field of services that are meant to be public facing, such as the ingress daemons or the plotter.
 
@@ -82,23 +95,71 @@ This will create a directory called `manifests` which contains the kubernetes co
 At the time the guide was written, this directory looks like
 
 ```bash
-$ ls manifests/
-adminconsole.deployment.yaml
-btrdb.statefulset.yaml
-create_admin_key.sh
-createdb.job.yaml
-etcd.statefulset.yaml
-ingester.deployment.yaml
-mrplotter.deployment.yaml
-pmu2btrdb.deployment.yaml
-receiver.deployment.yaml
+$ cd manifests && find .
+./readme.md
+./global
+./global/etcd.clusterrole.yaml
+./core
+./core/etcd-operator.deployment.yaml
+./core/create_admin_key.sh
+./core/secret_ceph_keyring.sh
+./core/etcd.cluster.yaml
+./core/etcd.clusterrolebinding.yaml
+./core/ensuredb.job.yaml
+./core/adminconsole.deployment.yaml
+./core/mrplotter.deployment.yaml
+./core/etcd.serviceaccount.yaml
+./core/apifrontend.deployment.yaml
+./core/btrdb.statefulset.yaml
+./ingress
+./ingress/ingester.deployment.yaml
+./ingress/pmu2btrdb.deployment.yaml
+./ingress/receiver.deployment.yaml
+./ingress/c37ingress.deployment.yaml
 ```
 
-Don't apply these config files just yet, there is some bootstrapping to be done first.
+These config files need to be applied in order.
+
+## Global
+
+If you are upgrading an existing BTrDB cluster, or installing a new BTrDB cluster on the same kubernetes cluster (different namespace), you can skip this part. If this is the first time on this kubernetes/ceph cluster, you need to do a little bootstrapping.
+
+```
+cd global
+kubectl create -f global/etcd.clusterrole.yaml
+```
+
+## Core
+
+Now it is time to install the core services
+
+Begin with the secrets
+
+```
+cd core
+chmod a+x secret_ceph_keyring.sh
+./secret_ceph_keyring.sh
+```
+
+Begin with the etcd cluster
+
+```
+cd core
+kubectl create -f etcd.clusterrolebinding.yaml
+kubectl create -f etcd-operator.deployment.yaml
+kubectl create -f etcd.cluster.yaml
+```
+
+Then wait for the etcd pods to exist by checking for the three etcd pods with `kubectl get pods`
+
+Then create the keys
+
+```
+
 
 ## Startup
 
-If you are upgrading an existing BTrDB cluster, you can skip this part. If this is the first time on this kubernetes/ceph cluster, you need to do a little bootstrapping.
+
 
 The admin console uses an SSH host key to prevent man-in-the-middle attacks. You have to create this host key as a kubernetes secret.
 It cannot be auto-generated because then it would not persist across upgrades or pod rescheduling. To create the key, run
