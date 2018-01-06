@@ -133,7 +133,7 @@ kubectl create -f global/etcd.clusterrole.yaml
 
 Now it is time to install the core services
 
-Begin with the secrets
+Begin with the secrets (if you did not already create these manually in the prerequisites section)
 
 ```
 cd core
@@ -141,10 +141,11 @@ chmod a+x secret_ceph_keyring.sh
 ./secret_ceph_keyring.sh
 ```
 
-Begin with the etcd cluster
+Then create the etcd cluster
 
 ```
 cd core
+kubectl create -f etcd.serviceaccount.yaml
 kubectl create -f etcd.clusterrolebinding.yaml
 kubectl create -f etcd-operator.deployment.yaml
 kubectl create -f etcd.cluster.yaml
@@ -152,122 +153,25 @@ kubectl create -f etcd.cluster.yaml
 
 Then wait for the etcd pods to exist by checking for the three etcd pods with `kubectl get pods`
 
-Then create the keys
+Now you can create the BTrDB database:
+
+```
+kubectl create -f ensuredb.job.yaml 
+```
+
+Create the BTrDB statefulset and the rest of the core services
+
+```
+kubectl create -f btrdb.statefulset.yaml
+kubectl create -f mrplotter.deployment.yaml
+kubectl create -f apifrontend.deployment.yaml
+kubectl create -f adminconsole.deployment.yaml
 
 ```
 
+## Ingress daemons
 
-## Startup
-
-
-
-The admin console uses an SSH host key to prevent man-in-the-middle attacks. You have to create this host key as a kubernetes secret.
-It cannot be auto-generated because then it would not persist across upgrades or pod rescheduling. To create the key, run
-
-```bash
-source manifests/create_admin_key.sh
-```
-
-Next, the BTrDB database needs to be created. This requires etcd to be running, so start those first:
-
-```bash
-kubectl create -f manifests/etcd.statefulset.yaml
-```
-
-Watch with `kubectl get pods` until all three etcd pods are up and running. It may take some time as it pulls the containers to your servers. Once you see output like this:
-
-```
-NAME                            READY     STATUS        RESTARTS   AGE
-etcd-0                          1/1       Running       0          24s
-etcd-1                          1/1       Running       0          17s
-etcd-2                          1/1       Running       0          14s
-```
-
-You can create the database:
-
-```
-kubectl create -f manifests/createdb.job.yaml
-```
-
-The pod will terminate upon success, so to check it ran ok, run `kubectl get jobs`. You should see
-
-```
-kubectl get jobs
-NAME                  DESIRED   SUCCESSFUL   AGE
-btrdb-createdb        1         1            44s
-```
-
-Which shows that the job ran successfully.
-
-At this point you can start BTrDB and scale it up
-```
-kubectl create -f manifests/btrdb.statefulset.yaml
-kubectl scale --replicas=3 statefulset btrdb
-```
-
-You can also start the rest of the services
-```
-kubectl create -f manifests/adminconsole.deployment.yaml
-kubectl create -f manifests/ingester.deployment.yaml
-kubectl create -f manifests/receiver.deployment.yaml
-kubectl create -f manifests/mrplotter.deployment.yaml
-kubectl create -f manifests/pmu2btrdb.deployment.yaml
-```
-
-After a short while pulling containers, `kubectl get pods` should show you:
-
-```
-NAME                             READY     STATUS        RESTARTS   AGE
-btrdb-0                          1/1       Running       0          4m
-btrdb-1                          1/1       Running       0          3m
-btrdb-2                          1/1       Running       0          3m
-console-2122947954-ztt80         1/1       Running       0          1m
-etcd-0                           1/1       Running       0          8m
-etcd-1                           1/1       Running       0          8m
-etcd-2                           1/1       Running       0          8m
-ingester-upmu-3112618582-ddnj2   1/1       Running       0          1m
-mrplotter-1281955092-1dxz0       1/1       Running       0          1m
-mrplotter-1281955092-3499n       1/1       Running       0          1m
-pmu2btrdb-2484217541-dkzdw       1/1       Running       0          55s
-pmu2btrdb-2484217541-s35th       1/1       Running       0          55s
-pmu2btrdb-2484217541-t0l2t       1/1       Running       0          55s
-pmu2btrdb-2484217541-zt3zk       1/1       Running       0          55s
-receiver-upmu-3502962172-r6p3j   1/1       Running       0          1m
-receiver-upmu-3502962172-wm4h6   1/1       Running       0          1m
-```
-
-You can do any changes to scaling that you want at this time. For example, the
-default number of pmu2btrdb instances in v4.4.3 is 4, which seems too high. You
-can correct this with
-
-```
-kubectl scale --replicas=2 deployment pmu2btrdb
-```
-
-If any of these pods are not running correctly, (for example STATUS is CrashLoopBackoff) you
-can get more details by using `kubectl logs -f <podname>`. For example say you saw
-
-```
-NAME                             READY     STATUS              RESTARTS   AGE
-ingester-upmu-3112618582-ddnj2   0/1       CrashLoopBackOff    1          17s
-```
-
-You can run `kubectl logs -f ingester-upmu-3112618582-ddnj2` which shows:
-
-```
-Booting ingester version 4.4.3
-2017/02/20 22:28:26 Connecting to etcd...
-Could not open ceph handle: rados: No such file or directory
-```
-
-This shows that it could not open the ceph pool because it does not exist. In this
-case it was because the `staging` pool had not been created. After fixing the problem,
-the pod will generally automatically start, but you can preempt any backoff time
-by executing
-
-```
-kubectl delete pod -l app=ingester-upmu
-```
+After the core is up and running, you can create the necessary ingress daemons by running `kubectl create -f` on their manifests in the `ingress` directory
 
 At this stage, your cluster is up and running, but you will likely want to drop into
 the admin console and change the default password and add PMU devices. Please consult the
