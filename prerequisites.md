@@ -2,20 +2,23 @@
 
 This guide assumes that you have ceph and kubernetes set up. Although there are many guides for getting to that point, we have found the following useful:
 
-- [Ceph quick start](http://docs.ceph.com/docs/master/start/)
-- [K8S with kubeadm](https://kubernetes.io/docs/getting-started-guides/kubeadm/)
+* [Ceph quick start](http://docs.ceph.com/docs/master/start/)
+* [K8S with kubeadm](https://kubernetes.io/docs/getting-started-guides/kubeadm/)
 
-This chapter will walk you through a couple checks to ensure that those guides
-were successful and that your cluster is ready to proceed. It will also walk you
+BTrDB supports Rook as well, which is an easier way of managing ceph using a kubernetes operator. You can see more details here:
+
+* [Rook Quickstart](https://rook.github.io/docs/rook/v0.8/quickstart-toc.html)
+
+This chapter will walk you through a couple checks to ensure that those guides  
+were successful and that your cluster is ready to proceed. It will also walk you  
 through some additional configuration, namely:
 
-- Creating and configuring the SGS k8s namespace
-- Configuring the kubernetes secrets for ceph
-- Configuring persistent volume provision on ceph
+* Creating and configuring the SGS k8s namespace
+* Configuring the kubernetes secrets for ceph \(if you are doing bare metal ceph rather than rook\)
 
 ## NTP
 
-Several parts of the stack, including ceph, work better if your servers have accurately synchronized time. You can check this by
+Several parts of the stack, including ceph, work better if your servers have accurately synchronized time. You can check this by  
 running
 
 ```bash
@@ -23,6 +26,7 @@ ntpq -p
 ```
 
 You should get output like
+
 ```
      remote           refid      st t when poll reach   delay   offset  jitter
 ==============================================================================
@@ -40,7 +44,7 @@ You should get output like
 
 The way to read this, is first ignore any entries that have a `refid` of `POOL` or a `when` that is nonexistent or large. Then look at the offset column. This is in RMS milliseconds. If this is greater than about 10ms then you should sort out your time synchronization first before proceeding.
 
-If `ntpq` is not found, you likely skipped over the Ceph preflight sections. Please make sure that you have ntp installed on your servers
+If `ntpq` is not found, you likely skipped over the Ceph preflight sections. Please make sure that you have ntp installed on your servers  
 and that there is no clock slew before proceeding.
 
 ## Ceph
@@ -68,14 +72,14 @@ cluster 36e53020-8ab4-41f5-abe7-19dea66db829
 client io 122 MB/s wr, 0 op/s rd, 171 op/s wr
 ```
 
-In this case, we have not created all our pools yet so it is warning us that we have too few placement groups (PGs) per OSD, but this is not important. If you get an output like:
+In this case, we have not created all our pools yet so it is warning us that we have too few placement groups \(PGs\) per OSD, but this is not important. If you get an output like:
 
 ```
 The program 'ceph' is currently not installed. You can install it by typing:
 sudo apt install ceph-common
 ```
 
-Do *NOT* install ceph via apt as it could be an old version. Go back to the ceph tutorial and make sure that you have followed all the steps correctly.
+Do _NOT_ install ceph via apt as it could be an old version. Go back to the ceph tutorial and make sure that you have followed all the steps correctly. If you have installed ceph using Rook, you can install `ceph-common` using apt-get and then create a symlink from `/etc/ceph/ceph.conf` pointing to `/var/lib/rook/rook-ceph/rook-ceph.config`.
 
 If you get an output like
 
@@ -90,19 +94,21 @@ This is actually not as bad as it looks. What it usually means is that you forgo
 
 ## Kubernetes
 
-A working kubernetes stack not only has a master with multiple nodes available to schedule pods, but also has working networking provided by a cluster addon. We test using `calico` but in theory any networking addon will work.
+A working kubernetes stack not only has a master with multiple nodes available to schedule pods, but also has working networking provided by a cluster addon. We test using `weave` but in theory any networking addon will work.
 
 The first thing to check is that your default namespace is correct. Execute
 
 ```bash
 kubectl config get-contexts
 ```
+
 You should get output similar to this:
+
 ```
 CURRENT   NAME                 CLUSTER      AUTHINFO   NAMESPACE
 *         admin@kubernetes     kubernetes   admin      sgs
-          kubelet@kubernetes   kubernetes   kubelet    
-```          
+          kubelet@kubernetes   kubernetes   kubelet
+```
 
 If you don't, you may not have a config for kubernetes yet, you can copy `/etc/kubernetes/admin.conf` to `~/.kube/config` and then you should get the above lines.
 
@@ -169,7 +175,7 @@ hostnames-3799501552-64v3g      1/1       Running       0          17s       192
 hostnames-3799501552-ww2gp      1/1       Running       0          17s       192.168.220.3     compound-2
 ```
 
-These three pods have a cluster-ip (shown in the IP column) which is part of a CIDR only accessible within the cluster.
+These three pods have a cluster-ip \(shown in the IP column\) which is part of a CIDR only accessible within the cluster.  
 We also created a load-balancing service, which has an IP in the cluster-ip CIDR:
 
 ```
@@ -178,29 +184,27 @@ NAME           CLUSTER-IP       EXTERNAL-IP                   PORT(S)          A
 hostnames      10.99.78.190     128.32.37.198,128.32.37.238   5643/TCP         15m
 ```
 
-And it will also have the external IPs that you designated in the service file.
-To test that the full stack is working properly and the external IP is routing to the cluster-ip which is
-selecting pods and routing to the pod IPs, you can curl the service from a machine outside the cluster.
-If you curl it a couple times you should see that a different pod serves each request (the hostnames image just serves
-the name of the pod over HTTP):
+And it will also have the external IPs that you designated in the service file.  
+To test that the full stack is working properly and the external IP is routing to the cluster-ip which is  
+selecting pods and routing to the pod IPs, you can curl the service from a machine outside the cluster.  
+If you curl it a couple times you should see that a different pod serves each request \(the hostnames image just serves  
+the name of the pod over HTTP\):
 
-```
-for i in `seq 1 10`; do curl 128.32.37.198:5643; done
-hostnames-3799501552-64v3g
-hostnames-3799501552-64v3g
-hostnames-3799501552-ww2gp
-hostnames-3799501552-64v3g
-hostnames-3799501552-1z4nb
-hostnames-3799501552-1z4nb
-hostnames-3799501552-ww2gp
-hostnames-3799501552-ww2gp
-hostnames-3799501552-ww2gp
-hostnames-3799501552-ww2gp
-```
+    for i in `seq 1 10`; do curl 128.32.37.198:5643; done
+    hostnames-3799501552-64v3g
+    hostnames-3799501552-64v3g
+    hostnames-3799501552-ww2gp
+    hostnames-3799501552-64v3g
+    hostnames-3799501552-1z4nb
+    hostnames-3799501552-1z4nb
+    hostnames-3799501552-ww2gp
+    hostnames-3799501552-ww2gp
+    hostnames-3799501552-ww2gp
+    hostnames-3799501552-ww2gp
 
 You can test each of the external IPs that you specified. All of them should work equally.
 
-If you encountered some problems following along here, something is wrong with your kubernetes setup.
+If you encountered some problems following along here, something is wrong with your kubernetes setup.  
 Please consult the kubernetes documentation and resolve those issues before proceeding.
 
 To clean up run
@@ -211,15 +215,15 @@ kubectl delete -f test.yaml
 
 ## Connecting kubernetes to ceph
 
-There are two connections between kubernetes and ceph. The first is the secrets that allow images
-to connect to RADOS as clients. This is required even if you are running on a cloud provider. The second
-allows kubernetes to provision persistent volumes as ceph RBDs. If you are running on a cloud provider, this
-is not really necessary as you can provision persistent volumes as Elastic Block Store volumes (or equivalent)
+There are two connections between kubernetes and ceph. The first is the secrets that allow images  
+to connect to RADOS as clients. This is required even if you are running on a cloud provider. The second  
+allows kubernetes to provision persistent volumes as ceph RBDs. If you are running on a cloud provider, this  
+is not really necessary as you can provision persistent volumes as Elastic Block Store volumes \(or equivalent\)  
 which will be a better use of resources.
 
 ### Ceph client secrets
 
-On the node that successfully ran `ceph -s` above, there will be files in `/etc/ceph`. In particular, containers
+On the node that successfully ran `ceph -s` above, there will be files in `/etc/ceph`. In particular, containers  
 within the cluster need access to
 
 ```
@@ -227,7 +231,7 @@ within the cluster need access to
 /etc/ceph/ceph.conf
 ```
 
-While this can be done using a volume mount, the images expect a kubernetes secret named `ceph-keyring`. To create this
+While this can be done using a volume mount, the images expect a kubernetes secret named `ceph-keyring`. To create this  
 run
 
 ```
@@ -237,9 +241,8 @@ kubectl create secret -n sgs generic ceph-keyring --from-file=ceph.client.admin.
 
 ### Ceph PV provider
 
-
-If you are running on bare metal and you do not have a default persistent volume provider, you can use ceph
-as a provider. Ensure that you have a ceph pool you would like to use for RBDs. SGS does not require much
+If you are running on bare metal and you do not have a default persistent volume provider, you can use ceph  
+as a provider. Ensure that you have a ceph pool you would like to use for RBDs. SGS does not require much  
 space in its persistent volumes, so if you have SSDs it would be best to allocate your RBD pool exclusively on those.
 
 Before you begin, if you are running Ceph Jewel, Kraken or Luminous, it will by default create RBD's with features unsupported by krbd. Please ensure your ceph config file has this line to prevent this:
@@ -250,26 +253,26 @@ rbd default features = 1
 
 Also, I believe it is necessary to have Linux Kernel 4.10 or greater.
 
-Next, the RBD provider also needs a ceph secret, but in a slighly different format. Get the literal key
+Next, the RBD provider also needs a ceph secret, but in a slighly different format. Get the literal key  
 from your admin keyring with:
 
 ```bash
 $ cat /etc/ceph/ceph.client.admin.keyring
 [client.admin]
-	key = AQCfoYtY8wqGEhAAghPf/EkXXFEhGA4gg1uVVg==
-	caps mds = "allow *"
-	caps mon = "allow *"
-	caps osd = "allow *"
+    key = AQCfoYtY8wqGEhAAghPf/EkXXFEhGA4gg1uVVg==
+    caps mds = "allow *"
+    caps mon = "allow *"
+    caps osd = "allow *"
 $ literalkey=AQCfoYtY8wqGEhAAghPf/EkXXFEhGA4gg1uVVg==
 $ kubectl create secret generic ceph-rbd-secret -n sgs --type="kubernetes.io/rbd" --from-literal=key=$literalkey
 ```
 
-Next you need to replace the kubernetes controller manager container. This is a workaround for the fact that
-kubeadm does not put the rbd tools inside the kcm container. On your masters, edit the file `/etc/kubernetes/manifests/kube-controller-manager.yaml`. In that file, change the specified image
+Next you need to replace the kubernetes controller manager container. This is a workaround for the fact that  
+kubeadm does not put the rbd tools inside the kcm container. On your masters, edit the file `/etc/kubernetes/manifests/kube-controller-manager.yaml`. In that file, change the specified image  
 to `btrdb/kubernetes-controller-manager-rbd:1.7.0`. As the name implies we built this image for kubernetes 1.7.0. If your kubernetes is a different version you can see how we built that container in [the github repo](https://github.com/BTrDB/smartgridstore/tree/master/containers/kcm-ceph). It generally does not work well to use the wrong version of kubernetes controller manager, so please ensure the version matches your kubernetes version. Alternatively AT&T maintain [a KCM image with almost identical changes](https://github.com/att-comdev/dockerfiles/tree/master/kube-controller-manager), so you can consider using theirs.
 
-Not being a kubernetes expert, I got the new image to take effect by restarting the entire master machine.
-After it comes back up, ensure that all your daemons are functioning properly, I found that some
+Not being a kubernetes expert, I got the new image to take effect by restarting the entire master machine.  
+After it comes back up, ensure that all your daemons are functioning properly, I found that some  
 of the networking daemons needed to be respawned to get things up again.
 
 ```bash
@@ -280,10 +283,10 @@ kubectl delete pods -n kube-system -l k8s-app=kube-proxy
 kubectl delete pods -n kube-system -l k8s-app=calico-node
 ```
 
-All of the kubernetes services are stateless, so it doesn't really hurt to indiscriminately delete pods until things
+All of the kubernetes services are stateless, so it doesn't really hurt to indiscriminately delete pods until things  
 are working again.
 
-Now that your kubernetes controller has the rbd tools available, you need to create an rbd-backed storage class and
+Now that your kubernetes controller has the rbd tools available, you need to create an rbd-backed storage class and  
 set it as the default. Assuming you have a pool called `fastrbd`, create a file called `fastrbd.yaml` with the following:
 
 ```yaml
@@ -319,7 +322,7 @@ NAME                          TYPE
 fastrbd (default)             kubernetes.io/rbd
 ```
 
-You can test that this is working by creating a Persistent Volume Claim (PVC) and
+You can test that this is working by creating a Persistent Volume Claim \(PVC\) and  
 seeing that it gets fulfilled. Put this in `testclaim.yaml`
 
 ```yaml
@@ -349,7 +352,7 @@ NAME                               STATUS    VOLUME                             
 testclaim                          Bound     pvc-969c006c-f7aa-11e6-9a3c-0cc47aaadc3c   8Gi        RWO           2s
 ```
 
-If the status is `bound` then you have done everything correctly. Note that if you are using a separate ceph cluster (i.e. your k8s nodes are not a part of your ceph cluster), you must still install the correct version of ceph-common on all the nodes in order for the RBD volumes to mount correctly. As before, do not use the default apt repository, get the latest ceph repository.
+If the status is `bound` then you have done everything correctly. Note that if you are using a separate ceph cluster \(i.e. your k8s nodes are not a part of your ceph cluster\), you must still install the correct version of ceph-common on all the nodes in order for the RBD volumes to mount correctly. As before, do not use the default apt repository, get the latest ceph repository.
 
 To clean up, run
 
@@ -380,5 +383,6 @@ parameters:
 
 ## Finishing up
 
-At this point, your cluster should be ready to install BTrDB and SmartGrid Store. If you encountered any problems that you were unable
+At this point, your cluster should be ready to install BTrDB and SmartGrid Store. If you encountered any problems that you were unable  
 to resolve, please contact btrdb@googlegroups.com.
+
