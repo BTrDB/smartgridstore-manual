@@ -108,12 +108,12 @@ $ dvceph -s
     id:     ecf0a5d9-d29a-4f16-bdd2-dbe92e0de8ed
     health: HEALTH_WARN
             application not enabled on 3 pool(s)
- 
+
   services:
     mon: 1 daemons, quorum 289c432a78ee
     mgr: 2f35c4ae3fc6(active)
     osd: 4 osds: 4 up, 4 in
- 
+
   data:
     pools:   3 pools, 48 pgs
     objects: 3 objects, 24 bytes
@@ -130,7 +130,6 @@ total_objects    3
 total_used       562G
 total_avail      2003G
 total_space      2565G
-
 ```
 
 ## Tearing down the cluster
@@ -144,8 +143,9 @@ sudo -E ./teardown_devmachine.sh
 
 Your output should look like
 
-    [INFO] removing container devmachine-ceph-osd-0 if exists
- DELETED
+```
+[INFO] removing container devmachine-ceph-osd-0 if exists
+DELETED
 [INFO] removing container devmachine-ceph-osd-1 if exists
  DELETED
 [INFO] removing container devmachine-ceph-osd-2 if exists
@@ -174,7 +174,9 @@ Your output should look like
 
 ## Limitations
 
-The development environment is not particularly durable, so should not be used to store real data. You can make the data more durable by setting
+The development environment is not particularly durable, so should not be used to store real data. 
+
+You can make the data more durable by setting
 
 ```
 USE_EPHEMERAL_STORAGE=N
