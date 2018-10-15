@@ -1,8 +1,8 @@
-# Smart Grid Store - 4.7
+# Smart Grid Store - 4.15.x
 
-Smart Grid Store is a distribution of the Berkeley Tree Database \(BTrDB\) that packages
-BTrDB along with tools for working with smart grid data in containers for easy deployment
-on a Kubernetes cluster. This guide is for version 4.7.x
+Smart Grid Store is a distribution of the Berkeley Tree Database \(BTrDB\) that packages  
+BTrDB along with tools for working with smart grid data in containers for easy deployment  
+on a Kubernetes cluster. This guide is for version 4.15.x
 
 Smart Grid Store, or SGS, consists of the following components:
 
@@ -12,6 +12,7 @@ Smart Grid Store, or SGS, consists of the following components:
 * pmu2btrdb: A high performance direct-path ingress daemon for Power Standards Lab microsynchrophasors
 * receiver/sync2q: A buffered-path ingress daemon pair for uPMUs that preserves the raw files produced by the devices for debugging or recovery at the expense of performance
 * c37ingress: An ingress daemon for IEEE C37.118 synchrophasor data
+* gepingress: An ingress daemon for GEP
 
 We are working on developing the following components for the latest version of SGS:
 

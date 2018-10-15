@@ -1,5 +1,4 @@
-
-#Development environment
+# Development environment
 
 If you are wanting a BTrDB setup on a workstation or laptop just to develop against it, this section will show you how to set up an analogue of the production setup, minus the ingress daemons.
 
@@ -16,7 +15,7 @@ git clone https://github.com/BTrDB/smartgridstore
 cd smartgridstore/devmachine
 ```
 
-If necessary, edit the `environment.sh` file to parameterize the development environment. The defaults should work okay on Ubuntu and OS X. 
+If necessary, edit the `environment.sh` file to parameterize the development environment. The defaults should work okay on Ubuntu and OS X.
 
 ## Setting up the cluster
 
@@ -39,12 +38,12 @@ Your output should look like this:
 [INFO][PULL] latest: Pulling from btrdb/stubetcd
 [INFO][PULL] Digest: sha256:6e871f7da2bbc5e717f82c2ac8529a9d58995fc3f937a0d1e49fb191f5232d39
 [INFO][PULL] Status: Image is up to date for btrdb/stubetcd:latest
-[INFO][PULL] 4.7.0: Pulling from btrdb/db
-[INFO][PULL] Digest: sha256:91ca6adcc32795c810cc2bcfd3f6961c5d672e05d738127932e7f208189dffbf
-[INFO][PULL] Status: Image is up to date for btrdb/db:4.7.0
-[INFO][PULL] 4.7.0: Pulling from btrdb/apifrontend
-[INFO][PULL] Digest: sha256:fb51a22aab7335753be78799dae69954f49c1287faa93fdb51bb570b9618c4ed
-[INFO][PULL] Status: Image is up to date for btrdb/apifrontend:4.7.0
+[INFO][PULL] 4.15.3: Pulling from btrdb/db
+[INFO][PULL] Digest: sha256:7a67fb58ceace27c3eb1e678afe37f0c5fbc6cd5dd0a1c5f8c4e01efe04d0040
+[INFO][PULL] Status: Image is up to date for btrdb/db:4.15.3
+[INFO][PULL] 4.15.3: Pulling from btrdb/apifrontend
+[INFO][PULL] Digest: sha256:9ffc8a08dae7e8243561fc7ef5c6cda641a3bc18d8e755e841ddb9d1362d3dc3
+[INFO][PULL] Status: Image is up to date for btrdb/apifrontend:4.15.3
 [INFO] waiting for monitor container to start
 [OKAY] ceph config found
 [WARN] custom monitor configs and restarting mon
@@ -57,22 +56,35 @@ Your output should look like this:
 [INFO] checking pools
 [INFO][POOL CREATE] pool 'btrdbhot' created
 [INFO][POOL CREATE] pool 'btrdbcold' created
+[INFO][POOL CREATE] pool 'btrdbjournal' created
 [INFO] checking database is initialized
 [INFO][DB INIT] + ls /etc/ceph
 [INFO][DB INIT] ceph.client.admin.keyring  ceph.conf  ceph.mon.keyring
 [INFO][DB INIT] + set +x
+[INFO][DB INIT] search san.rr.com
 [INFO][DB INIT] nameserver 127.0.0.11
 [INFO][DB INIT] options ndots:0
 [INFO][DB INIT] ensuring database
-[INFO][DB INIT] [INFO]main.go:41 > Starting BTrDB version 4.7.0 
-
-DB INIT output trimmed a bit
-
+[INFO][DB INIT] [INFO]main.go:41 > Starting BTrDB version 4.15.3 
+[INFO][DB INIT] [INFO]main.go:50 > TRACING IS _NOT_ ENABLED
+[INFO][DB INIT] Connecting to ETCD with 3 endpoints. 
+[INFO][DB INIT] EPZ:([]string{"http://172.29.0.20:2379", "http://172.29.0.20:2379", "http://172.29.0.20:2379"})
+[INFO][DB INIT] [WARNING]etcd.go:80 > No global etcd config found, bootstrapping
+[INFO][DB INIT] [WARNING]etcd.go:97 > No etcd config for this node (3a7e11100ecf-000) found, bootstrapping
+[INFO][DB INIT] [INFO]main.go:82 > CONFIG OKAY!
+[INFO][DB INIT] [INFO]main.go:90 > Ensuring database is initialized
+[INFO][DB INIT] reading ceph config: /etc/ceph/ceph.conf hotpool=btrdbhot coldpool=btrdbcold
+[INFO][DB INIT] connection OK, opening cold IO context
+[INFO][DB INIT] cold OK, opening hot IO context
+[INFO][DB INIT] checking for cold allocator
+[INFO][DB INIT] checking for legacy allocator
 [INFO][DB INIT] Creating blank cold allocator
 [INFO][DB INIT] Initializing cold pool
+[INFO][DB INIT] onto stage2
 [INFO][DB INIT] Initializing hot pool
-[INFO][DB INIT] Done
+[INFO][DB INIT] [INFO]main.go:92 > Done
 [INFO] waiting for DB server to start (20s)
+[INFO] waiting for DB server to start (10s)
 [INFO] database server started
 [INFO] admin console started
 [INFO] plotter server started
@@ -92,35 +104,32 @@ When you source the `environment.sh` file, it also adds `dvceph` and `dvrados` c
 
 ```
 $ dvceph -s  
-cluster:
-    id:     cf4e08c9-f0b2-4957-a2b5-daf5ae12609e
+  cluster:
+    id:     ecf0a5d9-d29a-4f16-bdd2-dbe92e0de8ed
     health: HEALTH_WARN
-            4 nearfull osd(s)
-            application not enabled on 2 pool(s)
-            too few PGs per OSD (24 < min 30)
-            mon bb1943fcac64 is low on available space
+            application not enabled on 3 pool(s)
  
   services:
-    mon: 1 daemons, quorum bb1943fcac64
-    mgr: 1849d337a4ea(active)
+    mon: 1 daemons, quorum 289c432a78ee
+    mgr: 2f35c4ae3fc6(active)
     osd: 4 osds: 4 up, 4 in
-         flags nearfull
  
   data:
-    pools:   2 pools, 32 pgs
-    objects: 2 objects, 16 bytes
-    usage:   756 GB used, 117 GB / 873 GB avail
-    pgs:     32 active+clean
+    pools:   3 pools, 48 pgs
+    objects: 3 objects, 24 bytes
+    usage:   562 GB used, 2003 GB / 2565 GB avail
+    pgs:     48 active+clean
 
 $ dvrados df
-POOL_NAME USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS RD   WR_OPS WR   
-btrdbcold    8       1      0      3                  0       0        0      3 2048      4 2048 
-btrdbhot     8       1      0      3                  0       0        0      3 2048      4 2048 
+POOL_NAME    USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS RD   WR_OPS WR   
+btrdbcold       8       1      0      3                  0       0        0      3 2048      4 2048 
+btrdbhot        8       1      0      3                  0       0        0      3 2048      4 2048 
+btrdbjournal    8       1      0      3                  0       0        0      0    0      1 1024 
 
-total_objects    2
-total_used       756G
-total_avail      117G
-total_space      873G
+total_objects    3
+total_used       562G
+total_avail      2003G
+total_space      2565G
 
 ```
 
@@ -128,15 +137,14 @@ total_space      873G
 
 When you are done, you can tear down the development machine with
 
-``
+```
 source ./environment.sh 
-sudo -E ./teardown_devmachine.sh 
+sudo -E ./teardown_devmachine.sh
 ```
 
 Your output should look like
 
-```
-[INFO] removing container devmachine-ceph-osd-0 if exists
+    [INFO] removing container devmachine-ceph-osd-0 if exists
  DELETED
 [INFO] removing container devmachine-ceph-osd-1 if exists
  DELETED
@@ -166,4 +174,11 @@ Your output should look like
 
 ## Limitations
 
-The development environment is not particularly durable, so should not be used to store real data. 
+The development environment is not particularly durable, so should not be used to store real data. You can make the data more durable by setting
+
+```
+USE_EPHEMERAL_STORAGE=N
+```
+
+
+
